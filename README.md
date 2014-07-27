@@ -24,6 +24,32 @@ routes               | the number of different alternatives used to calculate av
 minLatitude, maxLatitude, minLongitude, maxLongitude | the bounds for the area for which the data is fetched.
 step_meters          | the distance between dots for which the travel time data is fetched. Smaller number means more accurate data but more requests. 
 
+## Returned data
+The tool divides the area into several configurable-sized subareas for which the travel times are approximated by fetching the travel time for the center point of the area. The travel time data is then returned as JSON array of objects, as shown next.
+
+	[
+	    {
+	        "every": 30.0,
+	        "lat": 60.109342,
+	        "time": 203.2,
+	        "lng": 24.638042
+	    },
+	    {
+	        "every": 59.75,
+	        "lat": 60.109342,
+	        "time": 39.4,
+	        "lng": 24.692321
+	    },
+	    {
+	        "every": 59.75,
+	        "lat": 60.109342,
+	        "time": 44.4,
+	        "lng": 24.710414
+	    }
+	]
+
+In the JSON above, `lat` and `lng` fields represent the latitude and longitude of the departure point, in WGS84 coordinate system. `time` field contains the travel time to the specified destination and `every` the time difference between proposed departures (i.e. "the bus/etc. runs every 30 minutes")
+
 ## Examples
 ### Simple use case
 	python get_travel_times.py "Vattuniemenranta 2" 0 0
