@@ -40,7 +40,7 @@ def get_step_in_coordinates(property, step_meters, latitude=None):
   if property == 'latitude':
     return math.fabs(step_meters / 110540.0)
   elif property == 'longitude' and latitude != None:
-    return math.fabs(step_meters / 111320 * math.cos(latitude))
+    return math.fabs(step_meters / (111320.0 * math.cos(math.radians(latitude))))
   else:
     raise ValueError('property is not latitude or longitude or latitude is not specified when getting longitude property')
 
