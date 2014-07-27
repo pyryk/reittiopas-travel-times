@@ -58,7 +58,7 @@ def get_average_duration_between_routes(routing_json):
 
   return sum(list(map(lambda time: time.total_seconds() / 60, betweens))) / len(betweens)
 
-def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0):
+def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0, ignore_file=None):
   results = []
   noresults = []
 
@@ -69,17 +69,21 @@ def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0):
     for lng in lngs:
       if (offset == 0 or run >= offset) and (limit == 0 or run < offset + limit):
         fromCoords = str(lng) + ',' + str(lat)
-        try:
-          routing = get_routing(fromCoords, toCoords)
-          if routing != None:
-            results.append({"lat": lat, "lng": lng, "time": get_average_travel_time(routing), "every": get_average_duration_between_routes(routing)})
-          else:
-            noresults.append({"lat": lat, "lng": lng})
-        except RequestException as e:
-          print('Got {0} when trying to fetch routing for point {1} (from {2} to {3}): {4}'.format(type(e), run, fromCoords, toCoords, e.args))
+        if ignore_file is None or not should_ignore(lat, lng, ignore_file):
+          try:
+            print('Fetching routing for point {0}'.format(run))
+            routing = get_routing(fromCoords, toCoords)
+            if routing != None:
+              results.append({"lat": lat, "lng": lng, "time": get_average_travel_time(routing), "every": get_average_duration_between_routes(routing)})
+            else:
+              noresults.append({"lat": lat, "lng": lng})
+          except RequestException as e:
+            print('Got {0} when trying to fetch routing for point {1} (from {2} to {3}): {4}'.format(type(e), run, fromCoords, toCoords, e.args))
 
-        if (config['sleep'] != 0):
-          sleep(config['sleep'])
+          if (config['sleep'] != 0):
+            sleep(config['sleep'])
+        else:
+          print('Ignoring point ({0}, {1})'.format(lat, lng))
       run += 1
 
   return {"results": results, "noresults": noresults}
@@ -94,8 +98,14 @@ def write_json(to_write, filename, append):
     results = to_write
 
   file = open(filename, 'w')
-  file.write(json.dumps(results))
+  file.write(json.dumps(results, indent=4))
   file.close()
+
+def should_ignore(lat, lng, ignores):
+  for loc in ignores:
+    if loc['lat'] == lat and loc['lng'] == lng:
+      return True
+  return False
 
 # a hack that is good enough for this purpose
 def frange(start, end, step, precision=6):
@@ -109,20 +119,22 @@ parser.add_argument("target_address", help="the destination address")
 parser.add_argument("offset", type=int, help="the \"index\" of the first departure address to be included in this query")
 parser.add_argument("limit", type=int, help="the number of departure addresses, starting from offset, to be included in this query")
 parser.add_argument("-o", "--output", help="the output file name (defaults to stdout)")
-parser.add_argument("-no", "--no-results-output", help="output file name for \"no results\" output, i.e. list of coordinates for which there is no result. Can be used to avoid trying to fetch routes from sea etc.")
+parser.add_argument("-no", "--no-results-output", help="output file name for \"no results\" output, i.e. list of coordinates for which there is no result. Can be used in combination to --ignore to avoid trying to fetch routes from sea etc.")
 parser.add_argument("-a", "--append", help="append the output files if they exist", action="store_true")
+parser.add_argument("-i", "--ignore", help="path to file that contains points to be ignored. Uses --no-results-output formatting.")
 
 args = parser.parse_args()
+ignore = json.load(open(args.ignore, 'r')) if args.ignore != None else None
 
 target = get_coordinates(args.target_address)
 step_latitude = get_step_in_coordinates('latitude', config['step_meters'])
 step_longitude = get_step_in_coordinates('longitude', config['step_meters'], (config['maxLatitude'] + config['minLatitude']) / 2)
-data = get_travel_times_to(target, frange(config['minLatitude'], config['maxLatitude'], step_latitude), frange(config['minLongitude'], config['maxLongitude'], step_longitude), args.limit, args.offset)
+data = get_travel_times_to(target, frange(config['minLatitude'], config['maxLatitude'], step_latitude), frange(config['minLongitude'], config['maxLongitude'], step_longitude), args.limit, args.offset, ignore)
 
 if args.output != None:
   write_json(data['results'], args.output, args.append)
 else:
-  print(json.dumps(data['results']))
+  print(json.dumps(data['results'], indent=4))
 
 if args.no_results_output != None:
   write_json(data['noresults'], args.no_results_output, args.append)
