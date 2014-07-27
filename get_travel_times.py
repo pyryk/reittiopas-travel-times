@@ -51,16 +51,21 @@ def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0):
   results = []
   noresults = []
 
+  print('Total {0} points, limiting to {1}'.format(len(lats)*len(lngs), limit))
+
   run = 0
   for lat in lats:
     for lng in lngs:
       if (offset == 0 or run >= offset) and (limit == 0 or run < offset + limit):
         fromCoords = str(lng) + ',' + str(lat)
-        routing = get_routing(fromCoords, toCoords)
-        if routing != None:
-          results.append({"lat": lat, "lng": lng, "time": get_average_travel_time(routing), "every": get_average_duration_between_routes(routing)})
-        else:
-          noresults.append({"lat": lat, "lng": lng})
+        try:
+          routing = get_routing(fromCoords, toCoords)
+          if routing != None:
+            results.append({"lat": lat, "lng": lng, "time": get_average_travel_time(routing), "every": get_average_duration_between_routes(routing)})
+          else:
+            noresults.append({"lat": lat, "lng": lng})
+        except RequestException as e:
+          print('Got {0} when trying to fetch routing for point {1} (from {2} to {3}): {4}'.format(type(e), run, fromCoords, toCoords, e.args))
 
         if (config['sleep'] != 0):
           sleep(config['sleep'])
