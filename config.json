@@ -8,5 +8,5 @@
   "maxLatitude": 60.359564,
   "minLongitude": 24.547577,
   "maxLongitude": 25.177917,
-  "step": 0.005
+  "step_meters": 300
 }

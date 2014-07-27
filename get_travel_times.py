@@ -5,6 +5,7 @@ import sys
 from time import sleep
 from datetime import datetime,timedelta
 import argparse
+import math
 
 def get_config():
   configfile = open('config.json', 'r')
@@ -32,6 +33,16 @@ def get_routing(fromCoords,toCoords):
   else:
     print('No routes found for these coordinates.')
     return None
+
+# should work with relatively small areas sufficiently far away from the poles
+# from http://stackoverflow.com/questions/1253499/simple-calculations-for-working-with-lat-lon-km-distance
+def get_step_in_coordinates(property, step_meters, latitude=None):
+  if property == 'latitude':
+    return math.fabs(step_meters / 110540.0)
+  elif property == 'longitude' and latitude != None:
+    return math.fabs(step_meters / 111320 * math.cos(latitude))
+  else:
+    raise ValueError('property is not latitude or longitude or latitude is not specified when getting longitude property')
 
 def get_average_travel_time(routing_json):
   durations = list(map(lambda route: route[0]['duration'], routing_json))
@@ -103,13 +114,10 @@ parser.add_argument("-a", "--append", help="append the output files if they exis
 
 args = parser.parse_args()
 
-target_addr = args.target_address
-offset = args.offset
-limit = args.limit
-
-target = get_coordinates(target_addr)
-
-data = get_travel_times_to(target, frange(config['minLatitude'], config['maxLatitude'], config['step']), frange(config['minLongitude'], config['maxLongitude'], config['step']), limit, offset)
+target = get_coordinates(args.target_address)
+step_latitude = get_step_in_coordinates('latitude', config['step_meters'])
+step_longitude = get_step_in_coordinates('longitude', config['step_meters'], (config['maxLatitude'] + config['minLatitude']) / 2)
+data = get_travel_times_to(target, frange(config['minLatitude'], config['maxLatitude'], step_latitude), frange(config['minLongitude'], config['maxLongitude'], step_longitude), args.limit, args.offset)
 
 if args.output != None:
   write_json(data['results'], args.output, args.append)
