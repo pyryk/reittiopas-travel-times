@@ -4,7 +4,7 @@ A utility for fetching travel times to a specific location from [HSL Reittiopas]
 # Prerequisites / Installation
 1. [python](http://www.python.org). Developed and tested with Python 3.4, earlier versions *may* also work.
 2. [pip](https://pip.pypa.io/). Bundled with the installation of the more recent versions of python.
-3. Python module dependencies. Install by running `pip install -r requirements` in the project directory.
+3. Python module dependencies. Install by running `pip install -r requirements.txt` in the project directory.
 
 ## Usage
 1. Copy/rename `config.local.json.sample` to `config.local.json`. Input your [reittiopas credentials](http://developer.reittiopas.fi/pages/en/account-request.php) there.
