@@ -128,8 +128,8 @@ ignore = json.load(open(args.ignore, 'r')) if args.ignore != None else None
 
 target = get_coordinates(args.target_address)
 step_latitude = get_step_in_coordinates('latitude', config['step_meters'])
-step_longitude = get_step_in_coordinates('longitude', config['step_meters'], (config['maxLatitude'] + config['minLatitude']) / 2)
-data = get_travel_times_to(target, frange(config['minLatitude'], config['maxLatitude'], step_latitude), frange(config['minLongitude'], config['maxLongitude'], step_longitude), args.limit, args.offset, ignore)
+step_longitude = get_step_in_coordinates('longitude', config['step_meters'], (config['max_latitude'] + config['min_latitude']) / 2)
+data = get_travel_times_to(target, frange(config['min_latitude'], config['max_latitude'], step_latitude), frange(config['min_longitude'], config['max_longitude'], step_longitude), args.limit, args.offset, ignore)
 
 if args.output != None:
   write_json(data['results'], args.output, args.append)

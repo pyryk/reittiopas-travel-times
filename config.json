@@ -2,11 +2,11 @@
   "time": "0900",
   "date": "20140724",
   "epsg": "4326",
-  "sleep": 3,
+  "sleep": 5,
   "routes": 5,
-  "minLatitude": 60.153126,
-  "maxLatitude": 60.359564,
-  "minLongitude": 24.547577,
-  "maxLongitude": 25.177917,
-  "step_meters": 300
+  "min_latitude": 60.09125,
+  "max_latitude": 60.372466,
+  "min_longitude": 24.547577,
+  "max_longitude": 25.253448,
+  "step_meters": 1000
 }

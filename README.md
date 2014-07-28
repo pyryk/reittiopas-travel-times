@@ -14,14 +14,15 @@ A utility for fetching travel times to a specific location from [HSL Reittiopas]
 * The data is printed in JSON format to stdout or (with -o option) a file.
 
 ## Configuration file
-The configuration file `config.json` can be used to tweak the program.
+The configuration file `config.json` can be used to tweak the program. Alternatively, it is possible to retain `config.json` as default configuration and override values in `config.local.json`. 
 
 Configuration option | Description           
 -------------------- | ---------------------
-time, date           | travel time for these date/time values.
+time, date           | travel time for these date/time values. Should be in the API format (HHMM, YYYYMMDD)
 epsg                 | the coordinate format for the API. See [the API instructions](http://developer.reittiopas.fi/pages/en/http-get-interface-version-2.php) Currently only "4326" supported internally
+sleep                | the number of seconds between each request. This should be set to a minimum of couple of seconds to avoid flooding the API. Value 3 distributes the allowed number of requests quite evenly to the 1-hour timeframe. 
 routes               | the number of different alternatives used to calculate average travel times and the average durations between alternatives. Reittiopas API supports values 1-5.
-minLatitude, maxLatitude, minLongitude, maxLongitude | the bounds for the area for which the data is fetched.
+min_latitude, max_latitude, min_longitude, max_longitude | the bounds for the area for which the data is fetched.
 step_meters          | the distance between dots for which the travel time data is fetched. Smaller number means more accurate data but more requests. 
 
 ## Returned data
@@ -48,7 +49,7 @@ The tool divides the area into several configurable-sized subareas for which the
 	    }
 	]
 
-In the JSON above, `lat` and `lng` fields represent the latitude and longitude of the departure point, in WGS84 coordinate system. `time` field contains the travel time to the specified destination and `every` the time difference between proposed departures (i.e. "the bus/etc. runs every 30 minutes")
+In the JSON above, `lat` and `lng` fields represent the latitude and longitude of the departure point, in WGS84 coordinate system. `time` field contains the average travel time to the specified destination and `every` the time difference between proposed departures (i.e. "the bus/etc. runs every 30 minutes")
 
 ## Examples
 ### Simple use case
