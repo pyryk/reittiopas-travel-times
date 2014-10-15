@@ -6,6 +6,7 @@ from time import sleep
 from datetime import datetime,timedelta
 import argparse
 import math
+from requests.exceptions import *
 
 def get_config():
   configfile = open('config.json', 'r')
@@ -64,27 +65,31 @@ def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0, ignore_file=Non
 
   print('Total {0} points, limiting to {1}'.format(len(lats)*len(lngs), limit))
 
-  run = 0
-  for lat in lats:
-    for lng in lngs:
-      if (offset == 0 or run >= offset) and (limit == 0 or run < offset + limit):
-        fromCoords = str(lng) + ',' + str(lat)
-        if ignore_file is None or not should_ignore(lat, lng, ignore_file):
-          try:
+  try:
+    run = 0
+    for lat in lats:
+      for lng in lngs:
+        if (offset == 0 or run >= offset) and (limit == 0 or run < offset + limit):
+          fromCoords = str(lng) + ',' + str(lat)
+          if ignore_file is None or not should_ignore(lat, lng, ignore_file):
             print('Fetching routing for point {0}'.format(run))
-            routing = get_routing(fromCoords, toCoords)
-            if routing != None:
-              results.append({"lat": lat, "lng": lng, "time": get_average_travel_time(routing), "every": get_average_duration_between_routes(routing)})
-            else:
-              noresults.append({"lat": lat, "lng": lng})
-          except RequestException as e:
-            print('Got {0} when trying to fetch routing for point {1} (from {2} to {3}): {4}'.format(type(e), run, fromCoords, toCoords, e.args))
+            try:
+              routing = get_routing(fromCoords, toCoords)
+              if routing != None:
+                results.append({"lat": lat, "lng": lng, "time": get_average_travel_time(routing), "every": get_average_duration_between_routes(routing)})
+              else:
+                noresults.append({"lat": lat, "lng": lng})
+            except RequestException as e:
+                print('Got {0} when trying to fetch routing for point {1} (from {2} to {3}): {4}'.format(type(e), run, fromCoords, toCoords, e.args))
+                raise e
 
           if (config['sleep'] != 0):
             sleep(config['sleep'])
-        else:
-          print('Ignoring point ({0}, {1})'.format(lat, lng))
-      run += 1
+          else:
+            print('Ignoring point ({0}, {1})'.format(lat, lng))
+        run += 1
+  except (RequestException, KeyboardInterrupt):
+    pass
 
   return {"results": results, "noresults": noresults}
 
