@@ -1,6 +1,6 @@
 {
-  "time": "0900",
-  "date": "20140724",
+  "time": "0800",
+  "date": "20140924",
   "epsg": "4326",
   "sleep": 5,
   "routes": 5,
@@ -8,5 +8,5 @@
   "max_latitude": 60.372466,
   "min_longitude": 24.547577,
   "max_longitude": 25.253448,
-  "step_meters": 1000
+  "step_meters": 500
 }
