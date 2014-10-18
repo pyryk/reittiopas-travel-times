@@ -115,7 +115,7 @@ def should_ignore(lat, lng, ignores):
 # a hack that is good enough for this purpose
 def frange(start, end, step, precision=6):
   coeff = 10**precision
-  return list(map(lambda x: x/coeff, range(int(start*coeff), int(end*coeff), int(step*coeff))))
+  return list(map(lambda x: 1.0*x/coeff, range(int(start*coeff), int(end*coeff), int(step*coeff))))
 
 # ---- the actual program
 
