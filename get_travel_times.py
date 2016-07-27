@@ -168,7 +168,7 @@ else:
   print(json.dumps(data['results'], indent=4))
 
 if args.no_results_output != None:
-  write_json(data['noresults'], args.no_results_output, args.append)
+  write_json(data['noresults'], args.no_results_output, True) # always append
 
 total_count = len(data['results']) + len(data['noresults'])
 print('\nAll done, total {0} queries.'.format(total_count))
