@@ -10,30 +10,59 @@ from requests.exceptions import *
 
 def get_config():
   configfile = open('config.json', 'r')
-  localconfigfile = open('config.local.json', 'r')
-  return dict(list(json.load(configfile).items()) + list(json.load(localconfigfile).items()))
+  return json.load(configfile)
 
 config = get_config()
 
 def get_coordinates(search_term):
-  url = 'http://api.reittiopas.fi/hsl/prod/?request=geocode&user={0}&pass={1}&format=json&epsg_in={2}&epsg_out={3}&key={4}'.format(config['username'], config['password'], config['epsg'], config['epsg'], search_term)
+  url = 'http://api.digitransit.fi/geocoding/v1/search?text={0}&size=1'.format(search_term)
   r = requests.get(url)
   json = r.json()
-  if len(json) > 0:
-    return json[0]['coords']
+  if len(json['features']) > 0:
+    coords = json['features'][0]['geometry']['coordinates']
+    return {'lat': coords[1], 'lng': coords[0]} # geojson coordinate array is lng, lat
   else:
     return None
 
+def get_payload(fromCoords, toCoords):
+  return {
+  'query': '''
+    {{
+      plan(
+        from: {{lat: {0}, lon: {1}}}
+        to: {{lat: {2}, lon: {3}}}
+        numItineraries: {4}
+        date: "{5}"
+        time: "{6}"
+      ) {{
+        itineraries {{
+          duration
+          startTime
+        }}
+      }}
+    }}
+    '''.format(fromCoords['lat'], fromCoords['lng'], toCoords['lat'], toCoords['lng'], config['routes'], config['date'], config['time']),
+    'variables': None
+    }
+
 def get_routing(fromCoords,toCoords):
-  url = 'http://api.reittiopas.fi/hsl/prod/?request=route&user={0}&pass={1}&format=json&epsg_in={2}&epsg_out={3}&from={4}&to={5}&date={6}&time={7}&show={8}'.format(config['username'], config['password'], config['epsg'], config['epsg'], fromCoords, toCoords, config['date'], config['time'], config['routes'])
-  print('Getting {0}...'.format(url))
-  r = requests.get(url)
-  if (r.text != ''):
-    print('Ok.')
-    return r.json()
+
+  payload=get_payload(fromCoords, toCoords)
+
+  print('Getting data for point ({0},{1})'.format(fromCoords['lat'], fromCoords['lng']))
+  r = requests.post(config['endpoint'], json=payload)
+  json = r.json()
+  if len(json['data']['plan']['itineraries']) > 0:
+    return json
   else:
     print('No routes found for these coordinates.')
     return None
+  #if (r.text != ''):
+#    print('Ok.')
+#    return r.json()
+#  else:
+#    print('No routes found for these coordinates.')
+#    return None
 
 # should work with relatively small areas sufficiently far away from the poles
 # from http://stackoverflow.com/questions/1253499/simple-calculations-for-working-with-lat-lon-km-distance
@@ -46,18 +75,15 @@ def get_step_in_coordinates(property, step_meters, latitude=None):
     raise ValueError('property is not latitude or longitude or latitude is not specified when getting longitude property')
 
 def get_average_travel_time(routing_json):
-  durations = list(map(lambda route: route[0]['duration'], routing_json))
+  durations = list(map(lambda route: route['duration'], routing_json['data']['plan']['itineraries']))
   return sum(durations) / len(durations) / 60.0
 
 def get_average_duration_between_routes(routing_json):
-  departure_times = list(map(lambda route: datetime.strptime(route[0]['legs'][0]['locs'][0]['depTime'], '%Y%m%d%H%M'), routing_json))
+  itineraries = routing_json['data']['plan']['itineraries']
+  earliest_departure = min(itineraries, key=lambda itinerary: itinerary['startTime'])
+  latest_departure = max(itineraries, key=lambda itinerary: itinerary['startTime'])
 
-  betweens = []
-  for i in range(0, len(departure_times)-1):
-    delta = departure_times[i+1] - departure_times[i]
-    betweens.append(delta)
-
-  return sum(list(map(lambda time: time.total_seconds() / 60, betweens))) / len(betweens)
+  return (latest_departure['startTime'] - earliest_departure['startTime']) / 1000 / 60
 
 def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0, ignore_file=None):
   results = []
@@ -70,7 +96,7 @@ def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0, ignore_file=Non
     for lat in lats:
       for lng in lngs:
         if (offset == 0 or run >= offset) and (limit == 0 or run < offset + limit):
-          fromCoords = str(lng) + ',' + str(lat)
+          fromCoords = {'lng': lng,  'lat': lat}
           if ignore_file is None or not should_ignore(lat, lng, ignore_file):
             print('Fetching routing for point {0}'.format(run))
             try:
@@ -83,8 +109,8 @@ def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0, ignore_file=Non
                 print('Got {0} when trying to fetch routing for point {1} (from {2} to {3}): {4}'.format(type(e), run, fromCoords, toCoords, e.args))
                 raise e
 
-          if (config['sleep'] != 0):
-            sleep(config['sleep'])
+            if (config['sleep'] != 0):
+              sleep(config['sleep'])
           else:
             print('Ignoring point ({0}, {1})'.format(lat, lng))
         run += 1

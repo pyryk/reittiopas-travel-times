@@ -1,12 +1,13 @@
 {
-  "time": "0800",
-  "date": "20140924",
+  "time": "08:00:00",
+  "date": "2016-07-27",
   "epsg": "4326",
-  "sleep": 5,
+  "sleep": 1,
   "routes": 5,
   "min_latitude": 60.09125,
   "max_latitude": 60.372466,
   "min_longitude": 24.547577,
   "max_longitude": 25.253448,
-  "step_meters": 500
+  "step_meters": 500,
+  "endpoint": "https://api.digitransit.fi/routing/v1/routers/finland/index/graphql"
 }
