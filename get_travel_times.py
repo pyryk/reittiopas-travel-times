@@ -89,7 +89,9 @@ def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0, ignore_file=Non
   results = []
   noresults = []
 
-  print('Total {0} points, limiting to {1}'.format(len(lats)*len(lngs), limit))
+  total = len(lats) * len(lngs)
+
+  print('Total {0} points, limiting to {1}'.format(total, limit))
 
   try:
     run = 0
@@ -98,7 +100,7 @@ def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0, ignore_file=Non
         if (offset == 0 or run >= offset) and (limit == 0 or run < offset + limit):
           fromCoords = {'lng': lng,  'lat': lat}
           if ignore_file is None or not should_ignore(lat, lng, ignore_file):
-            print('Fetching routing for point {0}'.format(run))
+            print('Fetching routing for point {0} / {1}'.format(run, total))
             try:
               routing = get_routing(fromCoords, toCoords)
               if routing != None:
