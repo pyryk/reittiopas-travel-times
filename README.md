@@ -1,5 +1,5 @@
 # Travel Time Visualization Utility for HSL Reittiopas
-A utility for fetching travel times to a specific location from [HSL Reittiopas](http://reittiopas.fi). Does not provide the actual visualization in any way, just a way to get the data needed for it. Requires a [Reittopas developer account](http://developer.reittiopas.fi/pages/en/account-request.php).
+A utility for fetching travel times to a specific location from [HSL Reittiopas](http://reittiopas.fi). Does not provide the actual visualization in any way, just a way to get the data needed for it.
 
 # Prerequisites / Installation
 1. [python](http://www.python.org). Developed and tested with Python 3.4, earlier versions *may* also work.
@@ -7,23 +7,23 @@ A utility for fetching travel times to a specific location from [HSL Reittiopas]
 3. Python module dependencies. Install by running `pip install -r requirements.txt` in the project directory.
 
 ## Usage
-1. Copy/rename `config.local.json.sample` to `config.local.json`. Input your [reittiopas credentials](http://developer.reittiopas.fi/pages/en/account-request.php) there.
-2. run the tool with `python get_travel_times.py "destination address" 0 0`
-	* The `0 0` part denotes the "request bounds". The tool divides the HSL area to multiple subareas (or dots) for which the travel times are fetched. As the Reittiopas API has usage quota in place, it may be beneficial to limit the number of requests. The first `0` denotes the request offset and the second the number of requests to be made. The tool is most effectively used by first running e.g. `python get_travel_times.py "kamppi" 0 500`, and then continuing the process in the future with `python get_travel_times.py "kamppi" 501 500`.
-	* All command line options can be seen by running `python get_travel_times.py -h`.
+Run the tool with `python get_travel_times.py "destination address"`.
+
+* The tool divides the HSL area to multiple subareas (or dots) for which the travel times are fetched, resulting in hundreds (or thousands) of requests. Therefore, it may be beneficial to split requests into multiple sessions. This can be done with `python get_travel_times.py "destination address" 0 500`. The `0` denotes the request offset (in this case, start from the beginning) and the `500` denotes the number of requests to be made. This feature is most effectively used by first running e.g. `python get_travel_times.py "kamppi" 0 500`, and then continuing the process in the future with `python get_travel_times.py "kamppi" 501 500`.
+* All command line options can be seen by running `python get_travel_times.py -h`.
 * The data is printed in JSON format to stdout or (with -o option) a file.
+* See [Examples](#examples) below for more advanced usage.
 
 ## Configuration file
-The configuration file `config.json` can be used to tweak the program. Alternatively, it is possible to retain `config.json` as default configuration and override values in `config.local.json`. 
+The configuration file `config.json` can be used to tweak the program. Alternatively, it is possible to retain `config.json` as default configuration and override values in `config.local.json`.
 
 Configuration option | Description           
 -------------------- | ---------------------
-time, date           | travel time for these date/time values. Should be in the API format (HHMM, YYYYMMDD)
-epsg                 | the coordinate format for the API. See [the API instructions](http://developer.reittiopas.fi/pages/en/http-get-interface-version-2.php) Currently only "4326" supported internally
-sleep                | the number of seconds between each request. This should be set to a minimum of couple of seconds to avoid flooding the API. Value 3 distributes the allowed number of requests quite evenly to the 1-hour timeframe. 
+time, date           | travel time for these date/time values. Should be in the API format (HH:MM:SS, YYYY-MM-DD)
+sleep                | the number of seconds between each request. This should be set to a minimum of couple of seconds to avoid flooding the API.
 routes               | the number of different alternatives used to calculate average travel times and the average durations between alternatives. Reittiopas API supports values 1-5.
 min_latitude, max_latitude, min_longitude, max_longitude | the bounds for the area for which the data is fetched.
-step_meters          | the distance between dots for which the travel time data is fetched. Smaller number means more accurate data but more requests. 
+step_meters          | the distance between dots for which the travel time data is fetched. Smaller number means more accurate data but more requests.
 
 ## Returned data
 The tool divides the area into several configurable-sized subareas for which the travel times are approximated by fetching the travel time for the center point of the area. The travel time data is then returned as JSON array of objects, as shown next.

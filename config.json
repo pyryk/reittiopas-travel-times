@@ -1,7 +1,6 @@
 {
   "time": "08:00:00",
   "date": "2016-07-27",
-  "epsg": "4326",
   "sleep": 1,
   "routes": 5,
   "min_latitude": 60.09125,
