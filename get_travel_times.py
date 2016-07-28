@@ -50,19 +50,23 @@ def get_routing(fromCoords,toCoords):
   payload=get_payload(fromCoords, toCoords)
 
   print('Getting data for point ({0},{1})'.format(fromCoords['lat'], fromCoords['lng']))
-  r = requests.post(config['endpoint'], json=payload)
-  json = r.json()
-  if len(json['data']['plan']['itineraries']) > 0:
-    return json
-  else:
-    print('No routes found for these coordinates.')
-    return None
-  #if (r.text != ''):
-#    print('Ok.')
-#    return r.json()
-#  else:
-#    print('No routes found for these coordinates.')
-#    return None
+  for i in range(0, config['max_retries'] + 1):
+    try:
+      r = requests.post(config['endpoint'], json=payload)
+      json = r.json()
+      if len(json['data']['plan']['itineraries']) > 0:
+        return json
+      else:
+        print('No routes found for these coordinates.')
+        return None
+    except RequestException as e:
+      ex = e
+      if i < config['max_retries']:
+        print('Got error {0}, retrying in {1} seconds...'.format(type(e), config['retry_sleep']))
+        if config['retry_sleep'] > 0:
+          sleep(config['retry_sleep'])
+  # raise the latest error if no request succeeds
+  raise ex
 
 # should work with relatively small areas sufficiently far away from the poles
 # from http://stackoverflow.com/questions/1253499/simple-calculations-for-working-with-lat-lon-km-distance
@@ -116,8 +120,10 @@ def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0, ignore_file=Non
           else:
             print('Ignoring point ({0}, {1})'.format(lat, lng))
         run += 1
-  except (RequestException, KeyboardInterrupt):
-    pass
+  except RequestException as e:
+    print('Got error {0}, saving the results and exiting...'.format(type(e)))
+  except (KeyboardInterrupt):
+    print('Received KeyboardInterrupt, saving the current results and exiting...')
 
   return {"results": results, "noresults": noresults}
 

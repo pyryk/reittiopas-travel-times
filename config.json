@@ -9,5 +9,7 @@
   "min_longitude": 24.547577,
   "max_longitude": 25.253448,
   "step_meters": 500,
-  "endpoint": "https://api.digitransit.fi/routing/v1/routers/finland/index/graphql"
+  "endpoint": "https://api.digitransit.fi/routing/v1/routers/finland/index/graphql",
+  "max_retries": 4,
+  "retry_sleep": 5
 }
