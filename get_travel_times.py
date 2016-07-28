@@ -6,6 +6,7 @@ from time import sleep
 from datetime import datetime,timedelta
 import argparse
 import math
+import os
 from requests.exceptions import *
 
 def get_config():
@@ -129,9 +130,13 @@ def get_travel_times_to(toCoords, lats, lngs, limit=0, offset=0, ignore_file=Non
 
 def write_json(to_write, filename, append):
   results = None
-  if append:
+  if append and os.path.isfile(filename):
     rfile = open(filename, 'r')
-    results = json.load(rfile) + to_write
+    try:
+      results = json.load(rfile) + to_write
+    except ValueError: # empty file
+      print('{0} is empty or contains invalid JSON - overwriting.'.format(filename))
+      results = to_write
     rfile.close()
   else:
     results = to_write
