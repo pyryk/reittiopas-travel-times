@@ -53,16 +53,16 @@ In the JSON above, `lat` and `lng` fields represent the latitude and longitude o
 
 ## Examples
 ### Simple use case
-	python get_travel_times.py "Vattuniemenranta 2" 0 0
+	python get_travel_times.py "Vattuniemenranta 2"
 ### Output to file
-	python get_travel_times.py "Vattuniemenranta 2" 0 0 -o vattuniemenranta2.json
+	python get_travel_times.py "Vattuniemenranta 2" -o vattuniemenranta2.json
 ### Split fetching to several sessions
 	python get_travel_times.py "Vattuniemenranta 2" 0 500 -o vattuniemenranta2.json
 	python get_travel_times.py "Vattuniemenranta 2" 501 500 -o vattuniemenranta2.json -a
 ### Several destinations, skip sea on subsequent runs
 Use the --no-results-output (-no) option to save dots that yield no routes (most likely dots on sea) in order to skip those with --ignore (-i) on subsequent runs
 
-	python get_travel_times.py "Vattuniemenranta 2" 0 0 -o vattuniemenranta2.json --no-results-output noresults.json
-	python get_travel_times.py "Hanasaari" 0 0 -o hanasaari.json --ignore noresults.json
+	python get_travel_times.py "Vattuniemenranta 2" -o vattuniemenranta2.json --no-results-output noresults.json
+	python get_travel_times.py "Hanasaari" -o hanasaari.json --ignore noresults.json
 
 Note that the first run has no-results-output option while the second one has ignore.

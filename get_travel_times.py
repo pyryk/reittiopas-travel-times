@@ -155,8 +155,8 @@ def frange(start, end, step, precision=6):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("target_address", help="the destination address")
-parser.add_argument("offset", type=int, help="the \"index\" of the first departure address to be included in this query")
-parser.add_argument("limit", type=int, help="the number of departure addresses, starting from offset, to be included in this query")
+parser.add_argument("offset", nargs="?", type=int, help="the \"index\" of the first departure address to be included in this query", default=0)
+parser.add_argument("limit", nargs="?", type=int, help="the number of departure addresses, starting from offset, to be included in this query", default=0)
 parser.add_argument("-o", "--output", help="the output file name (defaults to stdout)")
 parser.add_argument("-no", "--no-results-output", help="output file name for \"no results\" output, i.e. list of coordinates for which there is no result. Can be used in combination to --ignore to avoid trying to fetch routes from sea etc.")
 parser.add_argument("-a", "--append", help="append the output files if they exist", action="store_true")
